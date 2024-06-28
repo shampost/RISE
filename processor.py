@@ -278,7 +278,6 @@ with tab3:
                 pipeline_df, people_df, remove_status, remove_step
             )
             if df is not None and st.button("Save Pipeline Instances File"):
-                st.download_button(df, "xx_to_xx_Pipeline_Instances_Export.csv")
                 save_file(df, "xx_to_xx_Pipeline_Instances_Export.csv")
 
 with tab4:
