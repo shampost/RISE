@@ -156,21 +156,22 @@ def save_excel_with_sheets(original_df, processed_df, filename):
     elif platform.system() == "Darwin":
         os.system(f'open {filename}')
 
-def process_pipeline_instances(df, people_df):
+def process_pipeline_instances(df, people_df, remove_status, remove_step):
     try:
         if df is not None:
-            df = df[df['Status'] != 'canceled']
-            remove_steps = ['initial', 'LinkSentViaEmail', 'LinkSentViaMessaging']
-            df = df[~df['Step'].isin(remove_steps)].sort_values('Step', ascending=True)
+            df = df[~df['Status'].isin(remove_status)]
+            df = df[~df['Step'].isin(remove_step)].sort_values('Step', ascending=True)
             
             if people_df is not None:
-                # Filter and keep only the necessary columns in the PTG tab of the People export
                 required_columns = ['Reach ID', 'First Name', 'Preferred Name', 'Middle Name', 'Last Name', 'Suffix', 'Phone Country Code', 'Phone', 'Email', 'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip']
                 people_df = people_df[required_columns]
                 
-                # Merge the Pipeline Instances with People data on 'REACH ID'
                 merged_df = pd.merge(df, people_df, on='Reach ID', how='left')
-                
+
+                merged_df['Created Timestamp'] = pd.to_datetime(merged_df['Created Timestamp']).dt.date
+                merged_df['Updated Timestamp'] = pd.to_datetime(merged_df['Updated Timestamp']).dt.date
+                merged_df['Recorded Timestamp'] = pd.to_datetime(merged_df['Recorded Timestamp']).dt.date
+
                 return merged_df
     except Exception as e:
         st.error(f"An error occurred during pipeline processing: {e}")
@@ -215,12 +216,12 @@ with tab3:
     uploaded_file = st.file_uploader('Upload Pipeline Instances Sheet Downloaded From Reach', type=['csv', 'xlsx'])
     people_file = st.file_uploader('Upload People Sheet for Merge', type=['csv', 'xlsx'])
     remove_status = ['canceled']
-    remove_step = ['initial', 'LinkSentViaEmail', 'LinkSentViaMessaging']
+    remove_step = ['initial', 'linkSentViaEmail', 'linkSentViaMessaging']
     if uploaded_file and people_file:
         pipeline_df = read_file(uploaded_file)
         people_df = read_file(people_file)
         if pipeline_df is not None and people_df is not None:
-            df = process_pipeline_instances(pipeline_df, people_df)
+            df = process_pipeline_instances(pipeline_df, people_df, remove_status, remove_step)
             if df is not None and st.button('Save Pipeline Instances File'):
                 save_file(df, 'xx_to_xx_Pipeline_Instances_Export.csv')
 
