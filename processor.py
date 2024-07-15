@@ -227,6 +227,7 @@ with tab1:
         "Mark as Wrong",
         "Opt Out",
         "External Message",
+        "Marked as Contacted"
     ]
     if uploaded_file:
         original_df = read_file(uploaded_file)
